@@ -1,0 +1,39 @@
+{
+  "name": "void-server",
+  "version": "0.1.0",
+  "description": "A zero-logic Node.js server-runtime facade that prints framework-like logs.",
+  "type": "module",
+  "license": "MIT",
+  "author": "Ring-wdr",
+  "homepage": "https://github.com/Ring-wdr/void-server#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Ring-wdr/void-server.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Ring-wdr/void-server/issues"
+  },
+  "bin": {
+    "void-server": "./bin/void-server.js"
+  },
+  "exports": {
+    ".": "./src/index.js"
+  },
+  "files": [
+    "bin",
+    "src",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "start": "node ./bin/void-server.js",
+    "test": "node --test",
+    "pack:dry": "npm pack --dry-run"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}
