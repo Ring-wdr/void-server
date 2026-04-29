@@ -14,7 +14,7 @@
     "url": "https://github.com/Ring-wdr/void-server/issues"
   },
   "bin": {
-    "void-server": "./bin/void-server.js"
+    "void-server": "bin/void-server.js"
   },
   "exports": {
     ".": "./src/index.js"
