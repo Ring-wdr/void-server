@@ -33,7 +33,7 @@ When NestJS is selected, choose a logger level:
   heavy (Enterprise platform logger)
 ```
 
-`simple` prints logs similar to a generated Nest template. `middle` adds startup-oriented service logs. `heavy` adds enterprise-style observability, policy, queue, and audit logs.
+`simple` prints logs similar to a generated Nest template. `middle` adds a normal API service shape with configuration, feature modules, database readiness, cache warmup, health routes, scheduler startup, and request logs. `heavy` is grounded by dev-only NestJS fixture projects and expands into an enterprise-style API platform with many DI providers, database pools, migrations, auth/RBAC policy warmup, queues, outbox, telemetry, audit, and SLO monitoring.
 
 or from a local checkout:
 
