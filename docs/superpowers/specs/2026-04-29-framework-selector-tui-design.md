@@ -18,14 +18,14 @@ Running `npx void-server` shows an interactive keyboard menu:
 ? Select framework runtime
 
 > Fastify     Fast Node.js server runtime
-  NestJS      Coming soon
+  NestJS      Dev-only Nest logger simulator
   Nitro       Coming soon
   Express     Coming soon
 
 Up/Down navigate • Enter select • Ctrl+C cancel
 ```
 
-Fastify is the recommended and only enabled option for this release. Other frameworks appear as disabled "Coming soon" choices so the product direction is visible without pretending those profiles exist.
+Fastify is the recommended option. NestJS is enabled and opens a second selector for `simple`, `middle`, and `heavy` logger depth. Other frameworks appear as disabled "Coming soon" choices so the product direction is visible without pretending those profiles exist.
 
 The selector may display the package identity before selection. After selection, runtime logs must continue to hide `void-server`.
 
@@ -41,10 +41,11 @@ Tests should verify:
 
 - the menu renders framework choices and coming-soon disabled entries
 - Enter selects Fastify and starts the runtime
+- selecting NestJS opens the logger-depth selector before starting the runtime
 - arrow-key navigation to a disabled entry does not start the runtime
 - Ctrl+C cancels without leaving the process hanging
 - runtime logs still do not expose `void-server`
 
 ## Scope
 
-This change only improves framework selection. It does not add new runtime profiles.
+This change improves framework selection and supports the NestJS logger-depth selector. Nitro and Express remain out of scope.

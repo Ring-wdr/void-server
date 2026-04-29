@@ -3,13 +3,17 @@ export type RuntimeLevel = 10 | 20 | 30 | 40 | 50;
 export interface RuntimeEvent {
   readonly level: RuntimeLevel;
   readonly message: string;
+  readonly context?: string;
   readonly bindings?: Record<string, unknown>;
 }
+
+export type LogFormat = "json" | "nestjs";
 
 export interface FrameworkProfile {
   readonly id: string;
   readonly label: string;
   readonly loggerName: string;
+  readonly format?: LogFormat;
   readonly intervalMs: number;
   readonly startup: readonly RuntimeEvent[];
   readonly runtime: readonly RuntimeEvent[];

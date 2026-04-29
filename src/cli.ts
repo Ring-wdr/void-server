@@ -2,6 +2,7 @@ import { hostname } from "node:os";
 import { stdin as input, stdout as output } from "node:process";
 import { cancel, isCancel, select } from "@clack/prompts";
 import { createFastifyProfile } from "./profiles/fastify.js";
+import { createNestjsProfile, type NestjsLogMode } from "./profiles/nestjs.js";
 import type { FrameworkProfile, Simulator } from "./profiles/types.js";
 import { createSimulator } from "./runtime/simulator.js";
 
@@ -11,6 +12,7 @@ interface SelectableProfile {
   readonly hint: string;
   readonly recommended?: boolean;
   readonly profile?: FrameworkProfile;
+  readonly enabled?: boolean;
 }
 
 const profileChoices: readonly SelectableProfile[] = [
@@ -24,7 +26,8 @@ const profileChoices: readonly SelectableProfile[] = [
   {
     id: "nestjs",
     label: "NestJS",
-    hint: "Coming soon"
+    hint: "Dev-only Nest logger simulator",
+    enabled: true
   },
   {
     id: "nitro",
@@ -62,7 +65,7 @@ async function selectProfile(choices: readonly SelectableProfile[]): Promise<Fra
       label: choice.recommended ? `${choice.label} (Recommended)` : choice.label,
       value: choice.id,
       hint: choice.hint,
-      disabled: !choice.profile
+      disabled: !choice.profile && !choice.enabled
     }))
   });
 
@@ -71,7 +74,11 @@ async function selectProfile(choices: readonly SelectableProfile[]): Promise<Fra
     process.exit(130);
   }
 
-  const selectedChoice = choices.find((choice) => choice.id === selected && choice.profile);
+  const selectedChoice = choices.find((choice) => choice.id === selected);
+
+  if (selectedChoice?.id === "nestjs") {
+    return createNestjsProfile(await selectNestjsLogMode());
+  }
 
   if (!selectedChoice?.profile) {
     cancel("Runtime profile is not available", { output });
@@ -79,6 +86,39 @@ async function selectProfile(choices: readonly SelectableProfile[]): Promise<Fra
   }
 
   return selectedChoice.profile;
+}
+
+async function selectNestjsLogMode(): Promise<NestjsLogMode> {
+  const selected = await select<NestjsLogMode>({
+    message: "Select NestJS logger level",
+    initialValue: "simple",
+    input,
+    output,
+    options: [
+      {
+        label: "simple",
+        value: "simple",
+        hint: "Template bootstrap logger"
+      },
+      {
+        label: "middle",
+        value: "middle",
+        hint: "Startup service logger"
+      },
+      {
+        label: "heavy",
+        value: "heavy",
+        hint: "Enterprise platform logger"
+      }
+    ]
+  });
+
+  if (isCancel(selected)) {
+    cancel("Operation cancelled", { output });
+    process.exit(130);
+  }
+
+  return selected;
 }
 
 function startUntilSignal(simulator: Simulator) {

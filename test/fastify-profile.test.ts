@@ -124,12 +124,24 @@ test("cli lets the user select Fastify and hides package identity after selectio
   assert.equal(output.includes("void-server"), false);
 });
 
-test("cli renders coming-soon profiles as disabled selector entries", async () => {
+test("cli lets the user select NestJS simple logger mode", async () => {
+  const output = await runCliForStagedInput({
+    inputs: ["\u001b[B", "\r", "\r"],
+    settle: (text) => text.includes("Starting Nest application...")
+  });
+
+  assert.match(output, /NestJS.*Dev-only Nest logger simulator/);
+  assert.match(output, /simple.*Template bootstrap logger/);
+  assert.match(output, /LOG \[NestFactory\] Starting Nest application\.\.\./);
+  assert.equal(output.includes("void-server"), false);
+});
+
+test("cli renders unavailable profiles as disabled selector entries", async () => {
   const result = await runCliUntilExit("\u0003");
 
   assert.equal(result.code, 130);
   assert.match(result.output, /Fastify \(Recommended\).*Fast Node\.js server runtime/);
-  assert.match(result.output, /NestJS.*Coming soon/);
+  assert.match(result.output, /NestJS/);
   assert.match(result.output, /Nitro.*Coming soon/);
   assert.match(result.output, /Express.*Coming soon/);
   assert.equal(result.output.includes("Server listening at http://127.0.0.1:3000"), false);
@@ -201,6 +213,72 @@ function runCliForOutput(options: { input: string; settle: (text: string) => boo
       if (!wroteInput && output.includes("Select framework runtime")) {
         wroteInput = true;
         child.stdin.write(options.input);
+      }
+
+      if (options.settle(output)) {
+        finish();
+      }
+    });
+
+    child.stderr.on("data", (chunk: Buffer) => {
+      output += chunk.toString("utf8");
+    });
+
+    child.on("error", finish);
+    child.on("exit", (code) => {
+      if (!settled && code !== 0) {
+        finish(new Error(`CLI exited before emitting runtime log: ${code}`));
+      }
+    });
+  });
+}
+
+function runCliForStagedInput(options: { inputs: string[]; settle: (text: string) => boolean }): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const child = spawn(process.execPath, ["bin/void-server.js"], {
+      cwd: process.cwd(),
+      stdio: ["pipe", "pipe", "pipe"]
+    });
+
+    let output = "";
+    let settled = false;
+    let inputIndex = 0;
+    const timeout = setTimeout(() => {
+      finish(new Error("Timed out waiting for CLI runtime log"));
+    }, 5000);
+
+    function finish(error?: Error) {
+      if (settled) {
+        return;
+      }
+
+      settled = true;
+      clearTimeout(timeout);
+      child.kill("SIGINT");
+
+      if (error) {
+        reject(error);
+        return;
+      }
+
+      resolve(output);
+    }
+
+    function writeNextInput() {
+      if (inputIndex >= options.inputs.length || settled) {
+        return;
+      }
+
+      child.stdin.write(options.inputs[inputIndex]);
+      inputIndex += 1;
+      setTimeout(writeNextInput, 100);
+    }
+
+    child.stdout.on("data", (chunk: Buffer) => {
+      output += chunk.toString("utf8");
+
+      if (inputIndex === 0 && output.includes("Select framework runtime")) {
+        setTimeout(writeNextInput, 25);
       }
 
       if (options.settle(output)) {

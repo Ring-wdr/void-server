@@ -17,12 +17,23 @@ Select a framework:
 ```text
 *  Select framework runtime
 > Fastify (Recommended) (Fast Node.js server runtime)
-  NestJS (Coming soon)
+  NestJS (Dev-only Nest logger simulator)
   Nitro (Coming soon)
   Express (Coming soon)
 ```
 
-Fastify is the first supported runtime profile. Other frameworks are shown as coming-soon entries so future profile support has a stable place to land.
+Fastify is the recommended runtime profile. NestJS is also available as a terminal-only logger simulator. Nitro and Express are shown as coming-soon entries so future profile support has a stable place to land.
+
+When NestJS is selected, choose a logger level:
+
+```text
+*  Select NestJS logger level
+> simple (Template bootstrap logger)
+  middle (Startup service logger)
+  heavy (Enterprise platform logger)
+```
+
+`simple` prints logs similar to a generated Nest template. `middle` adds startup-oriented service logs. `heavy` adds enterprise-style observability, policy, queue, and audit logs.
 
 or from a local checkout:
 
@@ -36,6 +47,7 @@ npm start
 
 - Opens a terminal framework selector.
 - Prints Fastify/Pino-style startup and request logs.
+- Prints NestJS-style terminal logger output in simple, middle, or heavy mode.
 - Keeps the process alive until `Ctrl+C`.
 - Exposes small profile and simulator APIs for tests or controlled demos.
 
@@ -55,7 +67,7 @@ npm test
 npm run pack:dry
 ```
 
-Fastify and Pino are development dependencies only. Runtime code is built from TypeScript and uses Node.js built-ins.
+Fastify, Pino, and NestJS packages are development dependencies only. Tests use them to keep simulated output grounded in real framework packages, but runtime source does not import those packages and published package contents exclude development-only source, tests, and docs.
 
 ## License
 
