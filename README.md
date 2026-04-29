@@ -1,8 +1,10 @@
 # void-server
 
-`void-server` is a deliberately empty Node.js package that looks like a framework server runtime from the terminal.
+`void-server` is a terminal framework runtime simulator.
 
-It prints familiar startup and request-style logs, but it does not open a port, register routes, start a worker pool, connect to a database, or run application logic. It is a shell for demos, screenshots, fixtures, and tests that need believable runtime output without a real server behind it.
+It lets you choose a framework profile and then prints logs that look like the selected framework is running. The shipped runtime does not open a port, register routes, start a worker pool, connect to a database, or run application logic.
+
+The first profile is Fastify.
 
 ## Usage
 
@@ -10,18 +12,26 @@ It prints familiar startup and request-style logs, but it does not open a port, 
 npx void-server
 ```
 
+Select a framework:
+
+```text
+1. Fastify
+```
+
 or from a local checkout:
 
 ```bash
 npm install
+npm run build
 npm start
 ```
 
 ## What It Does
 
-- Prints framework-like boot logs.
+- Opens a terminal framework selector.
+- Prints Fastify/Pino-style startup and request logs.
 - Keeps the process alive until `Ctrl+C`.
-- Exposes a tiny `createVoidServer()` API for tests or controlled demos.
+- Exposes small profile and simulator APIs for tests or controlled demos.
 
 ## What It Does Not Do
 
@@ -38,6 +48,8 @@ npm start
 npm test
 npm run pack:dry
 ```
+
+Fastify and Pino are development dependencies only. Runtime code is built from TypeScript and uses Node.js built-ins.
 
 ## License
 

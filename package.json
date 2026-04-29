@@ -1,7 +1,7 @@
 {
   "name": "void-server",
-  "version": "0.1.0",
-  "description": "A zero-logic Node.js server-runtime facade that prints framework-like logs.",
+  "version": "0.2.0",
+  "description": "A terminal framework runtime simulator with lightweight built-in execution.",
   "type": "module",
   "license": "MIT",
   "author": "Ring-wdr",
@@ -17,17 +17,19 @@
     "void-server": "bin/void-server.js"
   },
   "exports": {
-    ".": "./src/index.js"
+    ".": "./dist/index.js"
   },
   "files": [
     "bin",
-    "src",
+    "dist",
     "README.md",
     "LICENSE"
   ],
   "scripts": {
     "start": "node ./bin/void-server.js",
-    "test": "node --test",
+    "build": "tsc -p tsconfig.json",
+    "test": "npm run build && node --test test/*.test.ts",
+    "prepack": "npm run build",
     "pack:dry": "npm pack --dry-run"
   },
   "engines": {
@@ -35,5 +37,11 @@
   },
   "publishConfig": {
     "access": "public"
+  },
+  "devDependencies": {
+    "@types/node": "^25.6.0",
+    "fastify": "^5.8.5",
+    "pino": "^10.3.1",
+    "typescript": "^6.0.3"
   }
 }
