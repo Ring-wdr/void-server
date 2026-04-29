@@ -4,10 +4,10 @@ export type NestjsLogMode = "simple" | "middle" | "heavy";
 
 const simpleStartup: readonly RuntimeEvent[] = [
   { level: 30, context: "NestFactory", message: "Starting Nest application..." },
-  { level: 30, context: "InstanceLoader", message: "AppModule dependencies initialized" },
-  { level: 30, context: "RoutesResolver", message: "AppController {/}:" },
-  { level: 30, context: "RouterExplorer", message: "Mapped {/, GET} route" },
-  { level: 30, context: "NestApplication", message: "Nest application successfully started" }
+  { level: 30, context: "InstanceLoader", message: "AppModule dependencies initialized", elapsedMs: 3 },
+  { level: 30, context: "RoutesResolver", message: "AppController {/}:", elapsedMs: 2 },
+  { level: 30, context: "RouterExplorer", message: "Mapped {/, GET} route", elapsedMs: 1 },
+  { level: 30, context: "NestApplication", message: "Nest application successfully started", elapsedMs: 1 }
 ];
 
 const middleStartup: readonly RuntimeEvent[] = [

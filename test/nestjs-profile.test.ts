@@ -11,7 +11,10 @@ test("nestjs simple mode emits template-style Nest logger lines", () => {
 
   assert.ok(logs.some((line) => /\[Nest\] 4242\s+-/.test(line)));
   assert.ok(logs.some((line) => line.includes("LOG [NestFactory] Starting Nest application...")));
-  assert.ok(logs.some((line) => line.includes("LOG [InstanceLoader] AppModule dependencies initialized")));
+  assert.ok(logs.some((line) => line.includes("LOG [InstanceLoader] AppModule dependencies initialized +3ms")));
+  assert.ok(logs.some((line) => line.includes("LOG [RoutesResolver] AppController {/}: +2ms")));
+  assert.ok(logs.some((line) => line.includes("LOG [RouterExplorer] Mapped {/, GET} route +1ms")));
+  assert.ok(logs.some((line) => line.includes("LOG [NestApplication] Nest application successfully started +1ms")));
   assert.equal(logs.join("\n").includes("void-server"), false);
 });
 
@@ -67,6 +70,8 @@ test("nestjs observation fixtures use real Nest decorators outside shipped runti
   const fixtureSource = readFileSync("test/fixtures/nestjs/log-fixtures.ts", "utf8");
 
   assert.match(fixtureSource, /from "@nestjs\/common"/);
+  assert.match(fixtureSource, /class AppService/);
+  assert.match(fixtureSource, /return "Hello World!"/);
   assert.match(fixtureSource, /class HeavyFixtureAppModule/);
   assert.match(fixtureSource, /class DatabaseService implements OnApplicationBootstrap/);
   assert.match(fixtureSource, /class PlatformService implements OnApplicationBootstrap/);

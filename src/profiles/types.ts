@@ -4,6 +4,7 @@ export interface RuntimeEvent {
   readonly level: RuntimeLevel;
   readonly message: string;
   readonly context?: string;
+  readonly elapsedMs?: number;
   readonly bindings?: Record<string, unknown>;
 }
 

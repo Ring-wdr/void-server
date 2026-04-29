@@ -56,8 +56,9 @@ function formatNestjsLog(event: RuntimeEvent, extra: Record<string, unknown>, op
   const level = formatNestjsLevel(event.level);
   const context = event.context ? ` [${event.context}]` : "";
   const suffix = extra.signal ? ` (${String(extra.signal)})` : "";
+  const timing = typeof event.elapsedMs === "number" ? ` +${event.elapsedMs}ms` : "";
 
-  return `[Nest] ${options.pid}  - ${options.now().toLocaleString()}     ${level}${context} ${event.message}${suffix}`;
+  return `[Nest] ${options.pid}  - ${options.now().toLocaleString()}     ${level}${context} ${event.message}${suffix}${timing}`;
 }
 
 function formatNestjsLevel(level: RuntimeEvent["level"]): string {

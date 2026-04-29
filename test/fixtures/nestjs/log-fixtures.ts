@@ -59,9 +59,18 @@ class PlatformService implements OnApplicationBootstrap {
 
 @Controller()
 class AppController {
+  constructor(private readonly appService: AppService) {}
+
   @Get()
   getRoot(): string {
-    return "ok";
+    return this.appService.getHello();
+  }
+}
+
+@Injectable()
+class AppService {
+  getHello(): string {
+    return "Hello World!";
   }
 }
 
@@ -107,8 +116,9 @@ class InventoryModule {}
 class NotificationsModule {}
 
 @Module({
-  imports: [SharedFixtureModule],
-  controllers: [AppController]
+  imports: [],
+  controllers: [AppController],
+  providers: [AppService]
 })
 export class SimpleFixtureAppModule {}
 
