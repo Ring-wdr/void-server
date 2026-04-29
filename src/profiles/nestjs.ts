@@ -2,8 +2,23 @@ import type { FrameworkProfile, RuntimeEvent } from "./types.js";
 
 export type NestjsLogMode = "simple" | "middle" | "heavy";
 
+const watchPreamble: readonly RuntimeEvent[] = [
+  { level: 30, terminal: "typescript-watch-start", message: "Starting compilation in watch mode..." },
+  { level: 30, terminal: "blank", message: "" },
+  { level: 30, terminal: "typescript-watch-success", message: "Found 0 errors. Watching for file changes.", clockOffsetMs: 4000 },
+  { level: 30, terminal: "blank", message: "" },
+  {
+    level: 40,
+    terminal: "node-deprecation-warning",
+    message:
+      "DeprecationWarning: Passing args to a child process with shell option true can lead to security vulnerabilities, as the arguments are not escaped, only concatenated."
+  },
+  { level: 40, terminal: "node-deprecation-help", message: "(Use `node --trace-deprecation ...` to show where the warning was created)" }
+];
+
 const simpleStartup: readonly RuntimeEvent[] = [
-  { level: 30, context: "NestFactory", message: "Starting Nest application..." },
+  ...watchPreamble,
+  { level: 30, context: "NestFactory", message: "Starting Nest application...", clearBefore: true },
   { level: 30, context: "InstanceLoader", message: "AppModule dependencies initialized", elapsedMs: 3 },
   { level: 30, context: "RoutesResolver", message: "AppController {/}:", elapsedMs: 2 },
   { level: 30, context: "RouterExplorer", message: "Mapped {/, GET} route", elapsedMs: 1 },

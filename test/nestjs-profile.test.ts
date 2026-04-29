@@ -8,18 +8,48 @@ import { createSimulator } from "../src/runtime/simulator.ts";
 
 test("nestjs simple mode emits template-style Nest logger lines", () => {
   const logs = runProfile("simple");
+  const plainLogs = logs.map(stripAnsi);
 
-  assert.ok(logs.some((line) => /\[Nest\] 4242\s+-/.test(line)));
-  assert.ok(logs.some((line) => line.includes("LOG [NestFactory] Starting Nest application...")));
-  assert.ok(logs.some((line) => line.includes("LOG [InstanceLoader] AppModule dependencies initialized +3ms")));
-  assert.ok(logs.some((line) => line.includes("LOG [RoutesResolver] AppController {/}: +2ms")));
-  assert.ok(logs.some((line) => line.includes("LOG [RouterExplorer] Mapped {/, GET} route +1ms")));
-  assert.ok(logs.some((line) => line.includes("LOG [NestApplication] Nest application successfully started +1ms")));
-  assert.equal(logs.join("\n").includes("void-server"), false);
+  assert.ok(plainLogs.some((line) => /\[Nest\] 4242\s+-/.test(line)));
+  assert.ok(plainLogs.some((line) => line.includes("LOG [NestFactory] Starting Nest application...")));
+  assert.ok(plainLogs.some((line) => line.includes("LOG [InstanceLoader] AppModule dependencies initialized +3ms")));
+  assert.ok(plainLogs.some((line) => line.includes("LOG [RoutesResolver] AppController {/}: +2ms")));
+  assert.ok(plainLogs.some((line) => line.includes("LOG [RouterExplorer] Mapped {/, GET} route +1ms")));
+  assert.ok(plainLogs.some((line) => line.includes("LOG [NestApplication] Nest application successfully started +1ms")));
+  assert.equal(plainLogs.join("\n").includes("void-server"), false);
+});
+
+test("nestjs simple mode emits captured watch-mode terminal preamble and warning", () => {
+  const logs = runProfile("simple");
+  const plainLogs = logs.map(stripAnsi);
+
+  assert.ok(plainLogs.some((line) => /\[(?:AM|PM) \d{1,2}:\d{2}:\d{2}\] Starting compilation in watch mode\.\.\./.test(line)));
+  assert.ok(plainLogs.some((line) => /\[(?:AM|PM) \d{1,2}:\d{2}:\d{2}\] Found 0 errors\. Watching for file changes\./.test(line)));
+  assert.ok(plainLogs.some((line) => line.includes("[DEP0190] DeprecationWarning: Passing args to a child process with shell option true")));
+  assert.ok(plainLogs.some((line) => line.includes("Use `node --trace-deprecation ...` to show where the warning was created")));
+});
+
+test("nestjs simple mode preserves Nest ConsoleLogger ANSI colors", () => {
+  const logs = runProfile("simple");
+  const nestFactoryLog = logs.find((line) => stripAnsi(line).includes("[NestFactory] Starting Nest application..."));
+
+  assert.ok(nestFactoryLog);
+  assert.match(nestFactoryLog, /\x1B\[32m\[Nest\] 4242  - \x1B\[39m/);
+  assert.match(nestFactoryLog, /\x1B\[32m    LOG\x1B\[39m/);
+  assert.match(nestFactoryLog, /\x1B\[38;5;3m\[NestFactory\] \x1B\[39m/);
+  assert.match(nestFactoryLog, /\x1B\[32mStarting Nest application\.\.\.\x1B\[39m/);
+});
+
+test("nestjs simple mode clears the terminal before Nest application startup", () => {
+  const logs = runProfile("simple");
+  const nestFactoryLog = logs.find((line) => stripAnsi(line).includes("[NestFactory] Starting Nest application..."));
+
+  assert.ok(nestFactoryLog);
+  assert.ok(nestFactoryLog.startsWith("\x1B[2J\x1B[3J\x1B[H"));
 });
 
 test("nestjs middle mode emits typical API service lifecycle logs", () => {
-  const logs = runProfile("middle", 3).join("\n");
+  const logs = runProfile("middle", 3).map(stripAnsi).join("\n");
 
   assert.match(logs, /LOG \[InstanceLoader\] ConfigModule dependencies initialized/);
   assert.match(logs, /LOG \[InstanceLoader\] DatabaseModule dependencies initialized/);
@@ -31,7 +61,7 @@ test("nestjs middle mode emits typical API service lifecycle logs", () => {
 });
 
 test("nestjs heavy mode emits DI-rich enterprise platform logs", () => {
-  const logs = runProfile("heavy", 8).join("\n");
+  const logs = runProfile("heavy", 8).map(stripAnsi).join("\n");
 
   const initializedModules = logs.match(/LOG \[InstanceLoader\] .* dependencies initialized/g) ?? [];
   assert.ok(initializedModules.length >= 12, `expected many initialized modules, got ${initializedModules.length}`);
@@ -124,4 +154,8 @@ function collectFiles(directory: string, extension: string): string[] {
 
     return path.endsWith(extension) ? [path] : [];
   });
+}
+
+function stripAnsi(value: string): string {
+  return value.replace(/\u001b\[[0-9;]*[A-Za-z]/g, "");
 }

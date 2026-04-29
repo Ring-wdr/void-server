@@ -18,5 +18,8 @@ test("NestJS observation command can capture simple, middle, and heavy variants"
   assert.match(script, /elapsedMs/);
   assert.match(script, /jsonl/);
   assert.match(script, /markdown/i);
+  assert.match(script, /start:dev/);
+  assert.match(script, /nest start --watch/);
   assert.match(script, /PORT/);
+  assert.doesNotMatch(script, /\.nest-capture-raw\.log/);
 });

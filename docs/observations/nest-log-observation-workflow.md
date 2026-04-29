@@ -13,7 +13,7 @@ The command:
 - creates a fresh project with the official Nest CLI: `npx @nestjs/cli@latest new ... --package-manager npm --skip-git`
 - leaves `simple` as the untouched generated template
 - rewrites only `src/app.module.ts` for `middle` and `heavy` so the same official bootstrap path produces denser module/provider logs
-- starts the app with `PORT=0 npm run start`
+- starts the app with `PORT=0 FORCE_COLOR=1 npm run start:dev`, which runs `nest start --watch`
 - records stdout/stderr lines with `elapsedMs`
 - writes both Markdown and JSONL under `docs/observations`
 

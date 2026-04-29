@@ -5,6 +5,9 @@ export interface RuntimeEvent {
   readonly message: string;
   readonly context?: string;
   readonly elapsedMs?: number;
+  readonly terminal?: "typescript-watch-start" | "typescript-watch-success" | "node-deprecation-warning" | "node-deprecation-help" | "blank";
+  readonly clockOffsetMs?: number;
+  readonly clearBefore?: boolean;
   readonly bindings?: Record<string, unknown>;
 }
 

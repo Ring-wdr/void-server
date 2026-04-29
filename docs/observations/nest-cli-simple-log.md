@@ -28,7 +28,7 @@ $env:PORT = "0"
 npm run start
 ```
 
-`PORT=0` avoided a fixed local port conflict while leaving the generated source untouched.
+`PORT=0` avoided a fixed local port conflict while leaving the generated source untouched. New observations should use the version-controlled watch-mode command in [nest-log-observation-workflow.md](nest-log-observation-workflow.md).
 
 | stream | observed elapsed from command start | captured line |
 | --- | ---: | --- |

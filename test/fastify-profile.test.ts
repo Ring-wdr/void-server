@@ -132,7 +132,7 @@ test("cli lets the user select NestJS simple logger mode", async () => {
 
   assert.match(output, /NestJS.*Dev-only Nest logger simulator/);
   assert.match(output, /simple.*Template bootstrap logger/);
-  assert.match(output, /LOG \[NestFactory\] Starting Nest application\.\.\./);
+  assert.match(stripAnsi(output), /LOG \[NestFactory\] Starting Nest application\.\.\./);
   assert.equal(output.includes("void-server"), false);
 });
 
@@ -336,4 +336,8 @@ function runCliUntilExit(input: string): Promise<{ code: number | null; output: 
       resolve({ code, output });
     });
   });
+}
+
+function stripAnsi(value: string): string {
+  return value.replace(/\u001b\[[0-9;?]*[A-Za-z]/g, "");
 }
