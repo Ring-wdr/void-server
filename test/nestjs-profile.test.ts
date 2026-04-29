@@ -15,20 +15,40 @@ test("nestjs simple mode emits template-style Nest logger lines", () => {
   assert.equal(logs.join("\n").includes("void-server"), false);
 });
 
-test("nestjs middle mode emits startup-oriented service logs", () => {
-  const logs = runProfile("middle").join("\n");
+test("nestjs middle mode emits typical API service lifecycle logs", () => {
+  const logs = runProfile("middle", 3).join("\n");
 
-  assert.match(logs, /LOG \[ConfigService\] Loaded environment profile startup/);
-  assert.match(logs, /LOG \[HealthIndicator\] Readiness probe registered at \/health/);
-  assert.match(logs, /LOG \[NestApplication\] Nest application successfully started/);
+  assert.match(logs, /LOG \[InstanceLoader\] ConfigModule dependencies initialized/);
+  assert.match(logs, /LOG \[InstanceLoader\] DatabaseModule dependencies initialized/);
+  assert.match(logs, /LOG \[DatabaseService\] Database pool ready/);
+  assert.match(logs, /LOG \[CacheService\] Cache store warmed/);
+  assert.match(logs, /LOG \[HealthController\] Mapped \{\/health, GET\} route/);
+  assert.match(logs, /LOG \[SchedulerOrchestrator\] Registered 2 recurring jobs/);
+  assert.match(logs, /LOG \[RequestLogger\] GET \/api\/users 200/);
 });
 
-test("nestjs heavy mode emits enterprise-oriented platform logs", () => {
-  const logs = runProfile("heavy").join("\n");
+test("nestjs heavy mode emits DI-rich enterprise platform logs", () => {
+  const logs = runProfile("heavy", 8).join("\n");
 
+  const initializedModules = logs.match(/LOG \[InstanceLoader\] .* dependencies initialized/g) ?? [];
+  assert.ok(initializedModules.length >= 12, `expected many initialized modules, got ${initializedModules.length}`);
+
+  assert.match(logs, /LOG \[InstanceLoader\] BillingModule dependencies initialized/);
+  assert.match(logs, /LOG \[InstanceLoader\] InventoryModule dependencies initialized/);
+  assert.match(logs, /LOG \[DatabaseService\] Primary pool opened/);
+  assert.match(logs, /LOG \[MigrationRunner\] Schema migrations verified/);
+  assert.match(logs, /LOG \[RbacService\] Role hierarchy indexed/);
+  assert.match(logs, /LOG \[PolicyDecisionPoint\] Policy bundle warmed/);
+  assert.match(logs, /LOG \[QueueWorker\] invoices queue consuming/);
+  assert.match(logs, /LOG \[OutboxDispatcher\] Outbox relay caught up/);
   assert.match(logs, /LOG \[OpenTelemetryModule\] Trace exporter connected/);
-  assert.match(logs, /LOG \[AuthzPolicyModule\] Policy bundle warmed/);
   assert.match(logs, /LOG \[AuditPipeline\] Immutable audit stream ready/);
+  assert.match(logs, /LOG \[SloMonitor\] Latency and error-budget monitors armed/);
+  assert.match(logs, /LOG \[RequestLogger\] POST \/api\/orders 201/);
+  assert.match(logs, /LOG \[DatabaseService\] query orders\.insert completed/);
+  assert.match(logs, /LOG \[QueueWorker\] processed invoice\.capture/);
+  assert.match(logs, /LOG \[TraceSampler\] Span batch exported/);
+  assert.match(logs, /LOG \[AuditPipeline\] Audit envelope committed/);
 });
 
 test("nestjs profile keeps real Nest packages as dev-only test dependencies", () => {
@@ -53,7 +73,7 @@ test("runtime source does not import dev-only NestJS dependencies", () => {
   }
 });
 
-function runProfile(mode: "simple" | "middle" | "heavy"): string[] {
+function runProfile(mode: "simple" | "middle" | "heavy", ticks = 1): string[] {
   const profile = createNestjsProfile(mode);
   const logs: string[] = [];
   let tick: () => void = () => {};
@@ -71,7 +91,9 @@ function runProfile(mode: "simple" | "middle" | "heavy"): string[] {
   });
 
   simulator.start();
-  tick();
+  for (let index = 0; index < ticks; index += 1) {
+    tick();
+  }
   simulator.stop("SIGINT");
 
   return logs;
