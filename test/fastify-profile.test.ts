@@ -117,25 +117,22 @@ test("runtime source does not import dev-only framework dependencies", () => {
 });
 
 test("cli lets the user select Fastify and hides package identity after selection", async () => {
-  const output = await runCliUntilFirstRuntimeLog("1\n");
+  const output = await runCliUntilFirstRuntimeLog("\r");
 
-  assert.match(output, /> Fastify\s+Fast Node\.js server runtime\s+Recommended/);
+  assert.match(output, /Fastify \(Recommended\).*Fast Node\.js server runtime/);
   assert.match(output, /Server listening at http:\/\/127\.0\.0\.1:3000/);
   assert.equal(output.includes("void-server"), false);
 });
 
-test("cli renders coming-soon profiles and keeps disabled selections in the menu", async () => {
-  const output = await runCliForOutput({
-    input: "\u001B[B\r",
-    settle: (text) => text.includes("This runtime profile is not available yet.")
-  });
+test("cli renders coming-soon profiles as disabled selector entries", async () => {
+  const result = await runCliUntilExit("\u0003");
 
-  assert.match(output, /Fastify\s+Fast Node\.js server runtime/);
-  assert.match(output, /NestJS\s+Coming soon/);
-  assert.match(output, /Nitro\s+Coming soon/);
-  assert.match(output, /Express\s+Coming soon/);
-  assert.match(output, /This runtime profile is not available yet\./);
-  assert.equal(output.includes("Server listening at http://127.0.0.1:3000"), false);
+  assert.equal(result.code, 130);
+  assert.match(result.output, /Fastify \(Recommended\).*Fast Node\.js server runtime/);
+  assert.match(result.output, /NestJS.*Coming soon/);
+  assert.match(result.output, /Nitro.*Coming soon/);
+  assert.match(result.output, /Express.*Coming soon/);
+  assert.equal(result.output.includes("Server listening at http://127.0.0.1:3000"), false);
 });
 
 test("cli exits cleanly when cancelled before selecting a profile", async () => {
