@@ -15,8 +15,17 @@ npx void-server
 Select a framework:
 
 ```text
-1. Fastify
+? Select framework runtime
+
+> Fastify    Fast Node.js server runtime  Recommended
+  NestJS     Coming soon
+  Nitro      Coming soon
+  Express    Coming soon
+
+Up/Down navigate - Enter select - Ctrl+C cancel
 ```
+
+Fastify is the first supported runtime profile. Other frameworks are shown as coming-soon entries so future profile support has a stable place to land.
 
 or from a local checkout:
 

@@ -117,11 +117,33 @@ test("runtime source does not import dev-only framework dependencies", () => {
 });
 
 test("cli lets the user select Fastify and hides package identity after selection", async () => {
-  const output = await runCliUntilFirstRuntimeLog();
+  const output = await runCliUntilFirstRuntimeLog("1\n");
 
-  assert.match(output, /1\. Fastify/);
+  assert.match(output, /> Fastify\s+Fast Node\.js server runtime\s+Recommended/);
   assert.match(output, /Server listening at http:\/\/127\.0\.0\.1:3000/);
   assert.equal(output.includes("void-server"), false);
+});
+
+test("cli renders coming-soon profiles and keeps disabled selections in the menu", async () => {
+  const output = await runCliForOutput({
+    input: "\u001B[B\r",
+    settle: (text) => text.includes("This runtime profile is not available yet.")
+  });
+
+  assert.match(output, /Fastify\s+Fast Node\.js server runtime/);
+  assert.match(output, /NestJS\s+Coming soon/);
+  assert.match(output, /Nitro\s+Coming soon/);
+  assert.match(output, /Express\s+Coming soon/);
+  assert.match(output, /This runtime profile is not available yet\./);
+  assert.equal(output.includes("Server listening at http://127.0.0.1:3000"), false);
+});
+
+test("cli exits cleanly when cancelled before selecting a profile", async () => {
+  const result = await runCliUntilExit("\u0003");
+
+  assert.equal(result.code, 130);
+  assert.match(result.output, /Select framework runtime/);
+  assert.equal(result.output.includes("Server listening at http://127.0.0.1:3000"), false);
 });
 
 function collectFiles(directory: string, extension: string): string[] {
@@ -137,7 +159,14 @@ function collectFiles(directory: string, extension: string): string[] {
   });
 }
 
-function runCliUntilFirstRuntimeLog(): Promise<string> {
+function runCliUntilFirstRuntimeLog(input: string): Promise<string> {
+  return runCliForOutput({
+    input,
+    settle: (text) => text.includes("Server listening at http://127.0.0.1:3000")
+  });
+}
+
+function runCliForOutput(options: { input: string; settle: (text: string) => boolean }): Promise<string> {
   return new Promise((resolve, reject) => {
     const child = spawn(process.execPath, ["bin/void-server.js"], {
       cwd: process.cwd(),
@@ -167,14 +196,17 @@ function runCliUntilFirstRuntimeLog(): Promise<string> {
       resolve(output);
     }
 
+    let wroteInput = false;
+
     child.stdout.on("data", (chunk: Buffer) => {
       output += chunk.toString("utf8");
 
-      if (output.includes("Framework:")) {
-        child.stdin.write("1\n");
+      if (!wroteInput && output.includes("Select framework runtime")) {
+        wroteInput = true;
+        child.stdin.write(options.input);
       }
 
-      if (output.includes("Server listening at http://127.0.0.1:3000")) {
+      if (options.settle(output)) {
         finish();
       }
     });
@@ -188,6 +220,45 @@ function runCliUntilFirstRuntimeLog(): Promise<string> {
       if (!settled && code !== 0) {
         finish(new Error(`CLI exited before emitting runtime log: ${code}`));
       }
+    });
+  });
+}
+
+function runCliUntilExit(input: string): Promise<{ code: number | null; output: string }> {
+  return new Promise((resolve, reject) => {
+    const child = spawn(process.execPath, ["bin/void-server.js"], {
+      cwd: process.cwd(),
+      stdio: ["pipe", "pipe", "pipe"]
+    });
+
+    let output = "";
+    let wroteInput = false;
+    const timeout = setTimeout(() => {
+      child.kill("SIGKILL");
+      reject(new Error("Timed out waiting for CLI exit"));
+    }, 5000);
+
+    child.stdout.on("data", (chunk: Buffer) => {
+      output += chunk.toString("utf8");
+
+      if (!wroteInput && output.includes("Select framework runtime")) {
+        wroteInput = true;
+        child.stdin.write(input);
+      }
+    });
+
+    child.stderr.on("data", (chunk: Buffer) => {
+      output += chunk.toString("utf8");
+    });
+
+    child.on("error", (error) => {
+      clearTimeout(timeout);
+      reject(error);
+    });
+
+    child.on("exit", (code) => {
+      clearTimeout(timeout);
+      resolve({ code, output });
     });
   });
 }

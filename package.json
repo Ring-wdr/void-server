@@ -1,6 +1,6 @@
 {
   "name": "void-server",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "A terminal framework runtime simulator with lightweight built-in execution.",
   "type": "module",
   "license": "MIT",
