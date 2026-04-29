@@ -63,6 +63,15 @@ test("nestjs profile keeps real Nest packages as dev-only test dependencies", ()
   assert.equal(packageJson.dependencies?.["@nestjs/platform-express"], undefined);
 });
 
+test("nestjs observation fixtures use real Nest decorators outside shipped runtime", () => {
+  const fixtureSource = readFileSync("test/fixtures/nestjs/log-fixtures.ts", "utf8");
+
+  assert.match(fixtureSource, /from "@nestjs\/common"/);
+  assert.match(fixtureSource, /class HeavyFixtureAppModule/);
+  assert.match(fixtureSource, /class DatabaseService implements OnApplicationBootstrap/);
+  assert.match(fixtureSource, /class PlatformService implements OnApplicationBootstrap/);
+});
+
 test("runtime source does not import dev-only NestJS dependencies", () => {
   const sourceFiles = collectFiles("src", ".ts");
 
